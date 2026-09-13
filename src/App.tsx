@@ -5,7 +5,7 @@ import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { TableKit } from '@tiptap/extension-table'
 import { Markdown } from '@tiptap/markdown'
-import { ArrowUUpLeftIcon, ArrowUUpRightIcon, CaretDownIcon, CheckIcon, CodeBlockIcon, CodeIcon, ColumnsIcon, ColumnsPlusRightIcon, DownloadSimpleIcon, DotsThreeVerticalIcon, GearIcon, LinkIcon, ListIcon, ListBulletsIcon, ListChecksIcon, ListNumbersIcon, MagnifyingGlassIcon, NoteIcon, PlusIcon, QuotesIcon, RowsIcon, RowsPlusBottomIcon, TableIcon, TextBIcon, TextItalicIcon, TrashIcon, UploadSimpleIcon, XIcon } from '@phosphor-icons/react'
+import { ArrowUUpLeftIcon, ArrowUUpRightIcon, CaretDownIcon, CheckIcon, CodeBlockIcon, CodeIcon, ColumnsPlusRightIcon, DownloadSimpleIcon, DotsThreeVerticalIcon, GearIcon, LinkIcon, ListIcon, ListBulletsIcon, ListChecksIcon, ListNumbersIcon, MagnifyingGlassIcon, NoteIcon, PlusIcon, QuotesIcon, RowsPlusBottomIcon, TableIcon, TextBIcon, TextItalicIcon, TrashIcon, UploadSimpleIcon, XIcon } from '@phosphor-icons/react'
 import { clearNotes, createNote, deleteNote, listNotes, replaceNotes, saveNote, type Note } from './db'
 
 type IconName = 'search' | 'plus' | 'chevron' | 'note' | 'settings' | 'close' | 'undo' | 'redo'
@@ -46,6 +46,15 @@ const slashCommands: Command[] = [
   { label: 'Table', keywords: 'table grid rows columns', run: (editor) => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
 ]
 
+const ROWS_MINUS_D = 'M208,112H48a16,16,0,0,0-16,16v24a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V128A16,16,0,0,0,208,112Zm0,40H48V128H208v24Zm0-112H48A16,16,0,0,0,32,56V80A16,16,0,0,0,48,96H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40Zm0,40H48V56H208V80ZM144,208H112a8,8,0,0,0,0,16h32a8,8,0,0,0,0-16Z'
+const COLUMNS_MINUS_D = 'M80,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16V48A16,16,0,0,0,80,32Zm0,176H56V48H80ZM152,32H128a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16h24a16,16,0,0,0,16-16V48A16,16,0,0,0,152,32Zm0,176H128V48h24ZM240,120H208a8,8,0,0,0,0,16h32a8,8,0,0,0,0-16Z'
+function RowsMinusIcon({ size = 19 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor" aria-hidden><path d={ROWS_MINUS_D} /></svg>
+}
+function ColumnsMinusIcon({ size = 19 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor" aria-hidden><path d={COLUMNS_MINUS_D} /></svg>
+}
+
 function ToolbarGlyph({ label, active }: { label: string; active?: boolean }) {
   const props = { size: 19, weight: active ? 'bold' as const : 'regular' as const, 'aria-hidden': true }
   if (label === 'Bold') return <TextBIcon {...props} />
@@ -59,9 +68,9 @@ function ToolbarGlyph({ label, active }: { label: string; active?: boolean }) {
   if (label === 'Code block') return <CodeBlockIcon {...props} />
   if (label === 'Table') return <TableIcon {...props} />
   if (label === 'Add row') return <RowsPlusBottomIcon {...props} />
-  if (label === 'Delete row') return <RowsIcon {...props} />
+  if (label === 'Delete row') return <RowsMinusIcon size={props.size} />
   if (label === 'Add column') return <ColumnsPlusRightIcon {...props} />
-  if (label === 'Delete column') return <ColumnsIcon {...props} />
+  if (label === 'Delete column') return <ColumnsMinusIcon size={props.size} />
   if (label === 'Delete table') return <TrashIcon {...props} />
   if (label === 'Undo') return <ArrowUUpLeftIcon {...props} />
   return <ArrowUUpRightIcon {...props} />
