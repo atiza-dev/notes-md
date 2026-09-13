@@ -98,7 +98,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .title-input { display: block; width: 100%; margin: 21px 0 18px; padding: 0; border: 0; outline: 0; color: #18181b; background: transparent; font: 650 clamp(38px, 4.2vw, 49px)/1.08 Geist, ui-sans-serif, sans-serif; letter-spacing: -.045em; }
 .note-editor .title-input { margin: 0 0 40px; }
 .tiptap-editor-wrap { position: relative; }
-.editor-toolbar { position: sticky; z-index: 6; top: 0; display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 3px; min-height: 32px; margin: 0 0 66px; padding: 0; border: 0; color: #77777f; background: #fff; }
+.editor-toolbar { position: sticky; z-index: 6; top: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; min-height: 32px; margin: 0 0 66px; padding: 0; border: 0; color: #77777f; background: #fff; }
+.toolbar-main { display: flex; align-items: center; flex-wrap: wrap; gap: 3px; min-width: 0; }
+.toolbar-history { display: flex; align-items: center; gap: 3px; flex: 0 0 auto; }
 .toolbar-button { position: relative; display: grid; min-width: 27px; height: 27px; place-items: center; padding: 0 5px; border-radius: 5px; color: #77777f; background: transparent; font-size: 0; font-weight: 600; }
 .toolbar-button:hover, .toolbar-button.active { color: #35353a; background: #f1f1f3; }
 .toolbar-button:disabled { cursor: default; opacity: .3; }

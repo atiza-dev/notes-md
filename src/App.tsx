@@ -131,6 +131,7 @@ function EditorToolbar({ editor }: { editor: Editor }) {
     setLinkOpen(false)
   }
   return <div className="editor-toolbar" role="toolbar" aria-label="Formatting toolbar">
+    <div className="toolbar-main">
     <div ref={formatMenuRef} className={`format-menu ${formatOpen ? 'open' : ''}`}>
       <button type="button" className="format-trigger" aria-label="Text style" aria-haspopup="listbox" aria-expanded={formatOpen} onMouseDown={(event) => event.preventDefault()} onClick={() => setFormatOpen((open) => !open)}><span>{activeFormat}</span><CaretDownIcon size={16} weight="regular" aria-hidden /></button>
       {formatOpen && <div className="format-dropdown menu-panel" role="listbox" aria-label="Text style options">{formats.map((format) => <button type="button" role="option" aria-selected={activeFormat === format} className={`menu-option ${activeFormat === format ? 'selected' : ''}`} key={format} onMouseDown={(event) => event.preventDefault()} onClick={() => applyFormat(format)}>{activeFormat === format && <CheckIcon size={18} weight="bold" aria-hidden />}{format}</button>)}</div>}
@@ -148,9 +149,8 @@ function EditorToolbar({ editor }: { editor: Editor }) {
     <ToolbarButton label="Code block" active={editor.isActive('codeBlock')} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
     <ToolbarButton label="Table" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
     {editor.isActive('table') && <><span className="toolbar-divider" /><ToolbarButton label="Add row" onClick={() => editor.chain().focus().addRowAfter().run()} /><ToolbarButton label="Add column" onClick={() => editor.chain().focus().addColumnAfter().run()} /></>}
-    <span className="toolbar-spacer" />
-    <ToolbarButton label="Undo" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} />
-    <ToolbarButton label="Redo" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} />
+    </div>
+    <div className="toolbar-history"><ToolbarButton label="Undo" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} /><ToolbarButton label="Redo" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} /></div>
   </div>
 }
 
