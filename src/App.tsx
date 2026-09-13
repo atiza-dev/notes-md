@@ -261,6 +261,22 @@ export function App() {
   const dragDepth = useRef(0)
 
   useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return undefined
+    const update = () => {
+      const inset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop))
+      document.documentElement.style.setProperty('--kb-inset', `${inset}px`)
+    }
+    update()
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [])
+
+  useEffect(() => {
     listNotes().then((storedNotes) => {
       setNotes(storedNotes)
       setSelectedNote(storedNotes[0] ?? null)
