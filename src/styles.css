@@ -172,7 +172,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid #dedee3; border
 .app-shell.is-dragging .main-panel { outline: 2px dashed #b7c6f0; outline-offset: -10px; border-radius: 12px; }
 
 @media (max-width: 760px) {
-  .app-shell { padding-top: max(env(safe-area-inset-top, 0px), 10px); }
+  .app-shell { padding-top: max(env(safe-area-inset-top, 0px), 18px); }
   .menu-toggle { display: grid; }
   .breadcrumbs { display: none; }
   .topbar { padding: 0 14px; }
@@ -193,8 +193,15 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid #dedee3; border
   .file-button { width: 36px; padding: 0; }
   .file-button .btn-label { display: none; }
   .editor-canvas { width: calc(100% - 36px); padding-top: 60px; }
-  /* Slash menu: show above the caret so the on-screen keyboard doesn't cover it */
-  .slash-menu { max-height: 40vh; transform: translateY(calc(-100% - 2.4em)); }
+  /* Slash menu: bottom sheet anchored above the keyboard (interactive-widget=resizes-content),
+     so it is never clipped by the status bar nor hidden behind the keyboard */
+  .slash-menu {
+    position: fixed !important; top: auto !important; left: 0 !important; right: 0 !important;
+    bottom: 0 !important; width: 100% !important; transform: none !important;
+    max-height: 45vh; border-radius: 14px 14px 0 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 24px #35353a22;
+  }
   /* Keep the formatting toolbar pinned under the topbar while scrolling */
   .editor-toolbar { top: 0; z-index: 8; margin-bottom: 40px; background: #fff; }
   /* Shadow only once content is scrolled underneath the bar */
