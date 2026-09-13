@@ -1,11 +1,11 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { TableKit } from '@tiptap/extension-table'
 import { Markdown } from '@tiptap/markdown'
-import { ArrowUUpLeftIcon, ArrowUUpRightIcon, CaretDownIcon, CheckIcon, CodeBlockIcon, CodeIcon, ColumnsPlusRightIcon, DownloadSimpleIcon, DotsThreeVerticalIcon, GearIcon, LinkIcon, ListBulletsIcon, ListChecksIcon, ListNumbersIcon, MagnifyingGlassIcon, NoteIcon, PlusIcon, QuotesIcon, RowsPlusBottomIcon, TableIcon, TextBIcon, TextItalicIcon, TrashIcon, UploadSimpleIcon, XIcon } from '@phosphor-icons/react'
+import { ArrowUUpLeftIcon, ArrowUUpRightIcon, CaretDownIcon, CheckIcon, CodeBlockIcon, CodeIcon, ColumnsPlusRightIcon, DownloadSimpleIcon, DotsThreeVerticalIcon, GearIcon, LinkIcon, ListIcon, ListBulletsIcon, ListChecksIcon, ListNumbersIcon, MagnifyingGlassIcon, NoteIcon, PlusIcon, QuotesIcon, RowsPlusBottomIcon, TableIcon, TextBIcon, TextItalicIcon, TrashIcon, UploadSimpleIcon, XIcon } from '@phosphor-icons/react'
 import { clearNotes, createNote, deleteNote, listNotes, replaceNotes, saveNote, type Note } from './db'
 
 type IconName = 'search' | 'plus' | 'chevron' | 'note' | 'settings' | 'close' | 'undo' | 'redo'
@@ -255,6 +255,9 @@ export function App() {
   const editorRef = useRef<NoteEditorHandle>(null)
   const importInputRef = useRef<HTMLInputElement>(null)
   const backupInputRef = useRef<HTMLInputElement>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragDepth = useRef(0)
 
   useEffect(() => {
     listNotes().then((storedNotes) => {
@@ -302,6 +305,7 @@ export function App() {
     setQuery('')
     setSearchOpen(false)
     setSaveState('saved')
+    setSidebarOpen(false)
   }
 
   const handleExport = () => {
@@ -318,18 +322,53 @@ export function App() {
     window.setTimeout(() => URL.revokeObjectURL(url), 0)
   }
 
-  const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
+  const importMarkdownFile = async (file: File) => {
     const markdown = await file.text()
     const note = await createNote()
-    const imported = { ...note, title: file.name.replace(/\.md$/i, '') || 'Imported note', content: markdown, format: 'markdown' as const, updatedAt: Date.now() }
+    const imported = { ...note, title: file.name.replace(/\.(md|markdown|mdown|txt)$/i, '') || 'Imported note', content: markdown, format: 'markdown' as const, updatedAt: Date.now() }
     await saveNote(imported)
     setNotes((current) => [imported, ...current])
     setSelectedNote(imported)
     changeEditorMode('visual')
     setSaveState('saved')
+    setSidebarOpen(false)
+  }
+
+  const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) await importMarkdownFile(file)
+  }
+
+  const isMarkdownFile = (file: File) => /\.(md|markdown|mdown|txt)$/i.test(file.name) || file.type === 'text/markdown'
+  const dragHasFiles = (event: DragEvent<HTMLElement>) => Array.from(event.dataTransfer?.types ?? []).includes('Files')
+
+  const handleDragEnter = (event: DragEvent<HTMLElement>) => {
+    if (!dragHasFiles(event)) return
+    event.preventDefault()
+    dragDepth.current += 1
+    setIsDragging(true)
+  }
+
+  const handleDragOver = (event: DragEvent<HTMLElement>) => {
+    if (!dragHasFiles(event)) return
+    event.preventDefault()
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
+  }
+
+  const handleDragLeave = (event: DragEvent<HTMLElement>) => {
+    if (!dragHasFiles(event)) return
+    dragDepth.current = Math.max(0, dragDepth.current - 1)
+    if (dragDepth.current === 0) setIsDragging(false)
+  }
+
+  const handleDrop = async (event: DragEvent<HTMLElement>) => {
+    if (!dragHasFiles(event)) return
+    event.preventDefault()
+    dragDepth.current = 0
+    setIsDragging(false)
+    const files = Array.from(event.dataTransfer?.files ?? []).filter(isMarkdownFile)
+    for (const file of files) await importMarkdownFile(file)
   }
 
   const changeEditorMode = (mode: 'visual' | 'markdown') => {
@@ -381,18 +420,20 @@ export function App() {
   const saveLabel = saveState === 'loading' ? 'Loading workspace' : saveState === 'unsaved' ? 'Unsaved changes' : saveState === 'saving' ? 'Saving…' : 'All changes saved'
   const saveDotClass = saveState === 'saved' ? 'saved-dot' : saveState === 'unsaved' ? 'unsaved-dot' : 'saving-dot'
 
-  return <div className="app-shell">
-    <aside className="sidebar">
-      <div className="brand-row"><span className="brand-mark">md</span><span className="brand-name">Notes.md</span></div>
+  return <div className={`app-shell ${isDragging ? 'is-dragging' : ''}`} onDragEnter={handleDragEnter} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+    <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <div className="brand-row"><span className="brand-mark">md</span><span className="brand-name">Notes.md</span><button className="icon-button sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Close menu"><Icon name="close" /></button></div>
       <div className="sidebar-heading"><span>NOTES</span><div className="sidebar-actions"><button className={`icon-button ${searchOpen ? 'active' : ''}`} onClick={() => setSearchOpen((open) => !open)} aria-label="Search notes"><Icon name="search" /></button><button className="icon-button" onClick={handleCreateNote} aria-label="Create new note"><Icon name="plus" /></button></div></div>
       {searchOpen && <div className="search-box"><Icon name="search" size={14} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search notes" aria-label="Search notes" /><button className="search-clear" onClick={() => { setQuery(''); setSearchOpen(false) }} aria-label="Close search"><Icon name="close" size={13} /></button></div>}
-      <div className="notes-list" aria-label="Notes list">{visibleNotes.length === 0 ? <div className="notes-empty"><div className="empty-note-icon"><Icon name="note" size={18} /></div><p>{notes.length === 0 ? 'No notes yet' : 'No matching notes'}</p><span>{notes.length === 0 ? 'Create your first note to get started.' : 'Try a different search.'}</span></div> : visibleNotes.map((note) => <div key={note.id} className={`note-row ${selectedNote?.id === note.id ? 'selected' : ''}`}><button className="note-row-main" onClick={() => { setSelectedNote(note); setSaveState('saved') }}><span className="note-row-copy"><strong>{note.title || 'Untitled note'}</strong></span></button><button className="note-delete-button" onClick={() => void handleDeleteNote(note)} aria-label={`Delete ${note.title || 'Untitled note'}`} title="Delete note"><TrashIcon size={15} weight="regular" aria-hidden /></button></div>)}</div>
+      <div className="notes-list" aria-label="Notes list">{visibleNotes.length === 0 ? <div className="notes-empty"><div className="empty-note-icon"><Icon name="note" size={18} /></div><p>{notes.length === 0 ? 'No notes yet' : 'No matching notes'}</p><span>{notes.length === 0 ? 'Create your first note to get started.' : 'Try a different search.'}</span></div> : visibleNotes.map((note) => <div key={note.id} className={`note-row ${selectedNote?.id === note.id ? 'selected' : ''}`}><button className="note-row-main" onClick={() => { setSelectedNote(note); setSaveState('saved'); setSidebarOpen(false) }}><span className="note-row-copy"><strong>{note.title || 'Untitled note'}</strong></span></button><button className="note-delete-button" onClick={() => void handleDeleteNote(note)} aria-label={`Delete ${note.title || 'Untitled note'}`} title="Delete note"><TrashIcon size={15} weight="regular" aria-hidden /></button></div>)}</div>
       <div className="sidebar-footer"><button className="footer-link" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={15} /> Settings</button><span className="local-badge"><span className="status-dot" /> Local</span></div>
     </aside>
     <main className="main-panel">
-      <header className="topbar"><div className="breadcrumbs"><span className="muted">Notes</span><span className="slash">/</span><span>{selectedNote?.title ?? 'Workspace'}</span></div><div className="topbar-meta"><span className="save-state"><span className={`status-dot ${saveDotClass}`} /> {saveLabel}</span>{selectedNote && <><input ref={importInputRef} type="file" accept=".md,text/markdown" hidden onChange={handleImport} /><button className="file-button" onClick={() => importInputRef.current?.click()}><UploadSimpleIcon size={15} weight="regular" aria-hidden />Import .md</button><button className="file-button" onClick={handleExport}><DownloadSimpleIcon size={15} weight="regular" aria-hidden />Export .md</button><button className="mode-button format-trigger" onClick={() => changeEditorMode(editorMode === 'visual' ? 'markdown' : 'visual')}>{editorMode === 'visual' ? 'Visual' : 'Markdown'} <Icon name="chevron" size={14} /></button><button className="icon-button topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open settings"><DotsThreeVerticalIcon size={20} weight="regular" aria-hidden /></button></>}</div></header>
+      <header className="topbar"><div className="topbar-left"><button className="icon-button menu-toggle" onClick={() => setSidebarOpen(true)} aria-label="Open menu"><ListIcon size={20} weight="regular" aria-hidden /></button><div className="breadcrumbs"><span className="muted">Notes</span><span className="slash">/</span><span>{selectedNote?.title ?? 'Workspace'}</span></div></div><div className="topbar-meta"><span className="save-state"><span className={`status-dot ${saveDotClass}`} /> {saveLabel}</span>{selectedNote && <><input ref={importInputRef} type="file" accept=".md,text/markdown" hidden onChange={handleImport} /><button className="file-button" onClick={() => importInputRef.current?.click()}><UploadSimpleIcon size={15} weight="regular" aria-hidden /><span className="btn-label">Import .md</span></button><button className="file-button" onClick={handleExport}><DownloadSimpleIcon size={15} weight="regular" aria-hidden /><span className="btn-label">Export .md</span></button><button className="mode-button format-trigger" onClick={() => changeEditorMode(editorMode === 'visual' ? 'markdown' : 'visual')}><span className="btn-label">{editorMode === 'visual' ? 'Visual' : 'Markdown'}</span> <Icon name="chevron" size={14} /></button><button className="icon-button topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open settings"><DotsThreeVerticalIcon size={20} weight="regular" aria-hidden /></button></>}</div></header>
       <section className="editor-placeholder">{selectedNote ? <div className="editor-canvas note-editor"><div className="document-kicker">LOCAL MARKDOWN DOCUMENT</div><NoteEditor ref={editorRef} note={selectedNote} mode={editorMode} onTitleChange={(title) => updateNote({ title })} onChange={(content, format) => updateNote({ content, format: format ?? 'json' })} /></div> : <div className="editor-canvas empty-editor"><div className="document-kicker">LOCAL MARKDOWN DOCUMENT</div><h1>Your workspace for ideas</h1><p className="lead">A calm place to work with documents that live outside your knowledge vault.</p><div className="placeholder-rule" /><p className="editor-hint">Create a note from the sidebar to get started.</p></div>}</section>
     </main>
+    {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden />}
+    {isDragging && <div className="drop-overlay" aria-hidden><div className="drop-overlay-card"><UploadSimpleIcon size={26} weight="regular" aria-hidden /><strong>Suelta tu archivo Markdown</strong><span>Se importará como una nota nueva</span></div></div>}
     <input ref={backupInputRef} type="file" accept=".json,application/json" hidden onChange={handleRestore} />
     {settingsOpen && <SettingsPanel mode={editorMode} notes={notes} onModeChange={changeEditorMode} onBackup={handleBackup} onRestore={() => backupInputRef.current?.click()} onReset={handleReset} onClose={() => setSettingsOpen(false)} />}
   </div>
