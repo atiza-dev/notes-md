@@ -173,7 +173,8 @@ const NoteEditor = forwardRef<NoteEditorHandle, { note: Note; mode: 'visual' | '
       const { from } = currentEditor.state.selection
       const beforeCursor = currentEditor.state.doc.textBetween(Math.max(0, from - 40), from, '\n', '\0')
       const match = beforeCursor.match(/\/([a-z0-9]*)$/i)
-      setSlashQuery(match ? match[1].toLowerCase() : null)
+      const onMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches
+      setSlashQuery(match && !onMobile ? match[1].toLowerCase() : null)
       if (match) {
         const editorRect = currentEditor.view.dom.closest('.tiptap-editor-wrap')?.getBoundingClientRect()
         const cursorRect = currentEditor.view.coordsAtPos(from)
@@ -259,22 +260,6 @@ export function App() {
   const [scrolled, setScrolled] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const dragDepth = useRef(0)
-
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return undefined
-    const update = () => {
-      const inset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop))
-      document.documentElement.style.setProperty('--kb-inset', `${inset}px`)
-    }
-    update()
-    vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
-    return () => {
-      vv.removeEventListener('resize', update)
-      vv.removeEventListener('scroll', update)
-    }
-  }, [])
 
   useEffect(() => {
     listNotes().then((storedNotes) => {

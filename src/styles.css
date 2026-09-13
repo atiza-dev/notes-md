@@ -174,7 +174,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid #dedee3; border
 @media (max-width: 760px) {
   .menu-toggle { display: grid; }
   .breadcrumbs { display: none; }
-  .topbar { height: auto; flex: 0 0 auto; min-height: calc(66px + env(safe-area-inset-top, 0px)); padding: calc(18px + env(safe-area-inset-top, 0px)) 14px 14px; }
+  .topbar { background: #fff; height: auto; flex: 0 0 auto; min-height: calc(58px + env(safe-area-inset-top, 0px)); padding: calc(14px + env(safe-area-inset-top, 0px)) 14px 10px; }
   .topbar-meta { gap: 8px; }
   .save-state { display: none; }
   .main-panel { width: 100%; height: 100%; }
@@ -184,23 +184,14 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid #dedee3; border
     transform: translateX(-102%);
     transition: transform .24s ease;
     box-shadow: 2px 0 22px #35353a1f;
-    padding: calc(18px + env(safe-area-inset-top, 0px)) 12px 12px;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 12px 12px;
   }
   .sidebar.open { transform: translateX(0); }
   .sidebar-close { display: grid; }
   .sidebar-backdrop { display: block; position: fixed; z-index: 25; inset: 0; background: #35353a2e; }
   .file-button { width: 36px; padding: 0; }
   .file-button .btn-label { display: none; }
-  .editor-canvas { width: calc(100% - 36px); padding-top: 60px; }
-  /* Slash menu: bottom sheet anchored above the keyboard (interactive-widget=resizes-content),
-     so it is never clipped by the status bar nor hidden behind the keyboard */
-  .slash-menu {
-    position: fixed !important; top: auto !important; left: 0 !important; right: 0 !important;
-    bottom: var(--kb-inset, 0px) !important; width: 100% !important; transform: none !important;
-    max-height: 45vh; border-radius: 14px 14px 0 0;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 -8px 24px #35353a22;
-  }
+  .editor-canvas { width: calc(100% - 36px); padding-top: 26px; }
   /* Keep the formatting toolbar pinned under the topbar while scrolling */
   .editor-toolbar { top: 0; z-index: 8; margin-bottom: 40px; background: #fff; }
   /* Shadow only once content is scrolled underneath the bar */
