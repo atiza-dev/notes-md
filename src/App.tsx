@@ -244,6 +244,52 @@ function SettingsPanel({ mode, notes, onModeChange, onBackup, onRestore, onReset
   </div>
 }
 
+const WELCOME_MARKDOWN = [
+  'Notes.md is a calm, local-first editor for notes, drafts, and decisions. Everything you write stays in this browser, nothing is uploaded.',
+  '',
+  '## Format as you type',
+  '',
+  'Use the toolbar above, or type markdown directly: **bold**, *italic* and `inline code` format instantly. On a computer, type `/` for a quick block menu.',
+  '',
+  '> Tip: switch between the Visual and Markdown views from the button in the top bar.',
+  '',
+  '## Building blocks',
+  '',
+  '### Lists',
+  '',
+  '- Bullet points for quick ideas',
+  '- Great for brainstorming',
+  '',
+  '1. Numbered steps',
+  '2. In the right order',
+  '',
+  '### Checklist',
+  '',
+  '- [x] Rename this note from the title above',
+  '- [ ] Write your first paragraph',
+  '- [ ] Drag a .md file onto the app to import it',
+  '',
+  '### Table',
+  '',
+  '| Component | How to add it |',
+  '| --- | --- |',
+  '| Heading | Start a line with #, ## or ### |',
+  '| Quote | Start a line with > |',
+  '| Code | Wrap text in backticks |',
+  '',
+  '### Code block',
+  '',
+  '```',
+  'Your notes stay local. Your workspace stays yours.',
+  '```',
+  '',
+  '## Import and export',
+  '',
+  'Drag a **.md** file anywhere onto the app to import it, or use **Import .md** in the top bar. Export the current note with **Export .md**, and back up everything from **Settings**.',
+  '',
+  'When you are ready, clear this note and start writing, or create a new one with the + button in the sidebar.',
+].join('\n')
+
 export function App() {
   const [notes, setNotes] = useState<Note[]>([])
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
@@ -264,9 +310,11 @@ export function App() {
   useEffect(() => {
     listNotes().then(async (storedNotes) => {
       if (storedNotes.length === 0) {
-        const firstNote = await createNote()
-        setNotes([firstNote])
-        setSelectedNote(firstNote)
+        const now = Date.now()
+        const welcome: Note = { id: crypto.randomUUID(), title: 'Welcome to Notes.md', content: WELCOME_MARKDOWN, format: 'markdown', createdAt: now, updatedAt: now }
+        await saveNote(welcome)
+        setNotes([welcome])
+        setSelectedNote(welcome)
       } else {
         setNotes(storedNotes)
         setSelectedNote(storedNotes[0])
@@ -440,7 +488,7 @@ export function App() {
       <header className="topbar"><div className="topbar-left"><button className="icon-button menu-toggle" onClick={() => setSidebarOpen(true)} aria-label="Open menu"><ListIcon size={20} weight="regular" aria-hidden /></button><div className="breadcrumbs"><span className="muted">Notes</span><span className="slash">/</span><span>{selectedNote?.title ?? 'Workspace'}</span></div></div><div className="topbar-meta"><span className="save-state"><span className={`status-dot ${saveDotClass}`} /> {saveLabel}</span>{selectedNote && <><input ref={importInputRef} type="file" accept=".md,text/markdown" hidden onChange={handleImport} /><button className="file-button" onClick={() => importInputRef.current?.click()}><UploadSimpleIcon size={15} weight="regular" aria-hidden /><span className="btn-label">Import .md</span></button><button className="file-button" onClick={handleExport}><DownloadSimpleIcon size={15} weight="regular" aria-hidden /><span className="btn-label">Export .md</span></button><button className="mode-button format-trigger" onClick={() => changeEditorMode(editorMode === 'visual' ? 'markdown' : 'visual')}><span className="btn-label">{editorMode === 'visual' ? 'Visual' : 'Markdown'}</span> <Icon name="chevron" size={14} /></button><button className="icon-button topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open settings"><DotsThreeVerticalIcon size={20} weight="regular" aria-hidden /></button></>}</div></header>
       <section className={`editor-placeholder ${scrolled ? 'scrolled' : ''}`} onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 4)}>{selectedNote ? <div className="editor-canvas note-editor"><div className="document-kicker">LOCAL MARKDOWN DOCUMENT</div><NoteEditor ref={editorRef} note={selectedNote} mode={editorMode} onTitleChange={(title) => updateNote({ title })} onChange={(content, format) => updateNote({ content, format: format ?? 'json' })} /></div> : <div className="editor-canvas empty-editor"><div className="document-kicker">LOCAL MARKDOWN DOCUMENT</div><h1>Your workspace for ideas</h1><p className="lead">A calm place to work with documents that live outside your knowledge vault.</p><div className="placeholder-rule" /><p className="editor-hint">Create a note from the sidebar to get started.</p></div>}</section>
     </main>
-    <div className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden />
+    {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden />}
     {isDragging && <div className="drop-overlay" aria-hidden><div className="drop-overlay-card"><UploadSimpleIcon size={26} weight="regular" aria-hidden /><strong>Suelta tu archivo Markdown</strong><span>Se importará como una nota nueva</span></div></div>}
     <input ref={backupInputRef} type="file" accept=".json,application/json" hidden onChange={handleRestore} />
     {settingsOpen && <SettingsPanel mode={editorMode} notes={notes} onModeChange={changeEditorMode} onBackup={handleBackup} onRestore={() => backupInputRef.current?.click()} onReset={handleReset} onClose={() => setSettingsOpen(false)} />}
