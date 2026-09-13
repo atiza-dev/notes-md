@@ -10,6 +10,7 @@
 }
 
 * { box-sizing: border-box; }
+html { -webkit-tap-highlight-color: transparent; }
 html, #root { height: 100%; }
 body { margin: 0; min-width: 320px; min-height: 100vh; overflow: hidden; background: #fff; }
 button, input { font: inherit; }
@@ -188,7 +189,8 @@ kbd { display: inline-block; padding: 1px 5px; border: 1px solid #dedee3; border
   }
   .sidebar.open { transform: translateX(0); }
   .sidebar-close { display: grid; }
-  .sidebar-backdrop { display: block; position: fixed; z-index: 25; inset: 0; background: #35353a2e; }
+  .sidebar-backdrop { display: block; position: fixed; z-index: 25; inset: 0; background: #35353a2e; opacity: 0; pointer-events: none; transition: opacity .24s ease; }
+  .sidebar-backdrop.open { opacity: 1; pointer-events: auto; }
   .file-button { width: 36px; padding: 0; }
   .file-button .btn-label { display: none; }
   .editor-canvas { width: calc(100% - 36px); padding-top: 26px; }

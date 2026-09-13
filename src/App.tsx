@@ -262,9 +262,15 @@ export function App() {
   const dragDepth = useRef(0)
 
   useEffect(() => {
-    listNotes().then((storedNotes) => {
-      setNotes(storedNotes)
-      setSelectedNote(storedNotes[0] ?? null)
+    listNotes().then(async (storedNotes) => {
+      if (storedNotes.length === 0) {
+        const firstNote = await createNote()
+        setNotes([firstNote])
+        setSelectedNote(firstNote)
+      } else {
+        setNotes(storedNotes)
+        setSelectedNote(storedNotes[0])
+      }
       setSaveState('saved')
     }).catch(() => setSaveState('saved'))
     return () => window.clearTimeout(saveTimer.current)
@@ -434,7 +440,7 @@ export function App() {
       <header className="topbar"><div className="topbar-left"><button className="icon-button menu-toggle" onClick={() => setSidebarOpen(true)} aria-label="Open menu"><ListIcon size={20} weight="regular" aria-hidden /></button><div className="breadcrumbs"><span className="muted">Notes</span><span className="slash">/</span><span>{selectedNote?.title ?? 'Workspace'}</span></div></div><div className="topbar-meta"><span className="save-state"><span className={`status-dot ${saveDotClass}`} /> {saveLabel}</span>{selectedNote && <><input ref={importInputRef} type="file" accept=".md,text/markdown" hidden onChange={handleImport} /><button className="file-button" onClick={() => importInputRef.current?.click()}><UploadSimpleIcon size={15} weight="regular" aria-hidden /><span className="btn-label">Import .md</span></button><button className="file-button" onClick={handleExport}><DownloadSimpleIcon size={15} weight="regular" aria-hidden /><span className="btn-label">Export .md</span></button><button className="mode-button format-trigger" onClick={() => changeEditorMode(editorMode === 'visual' ? 'markdown' : 'visual')}><span className="btn-label">{editorMode === 'visual' ? 'Visual' : 'Markdown'}</span> <Icon name="chevron" size={14} /></button><button className="icon-button topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open settings"><DotsThreeVerticalIcon size={20} weight="regular" aria-hidden /></button></>}</div></header>
       <section className={`editor-placeholder ${scrolled ? 'scrolled' : ''}`} onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 4)}>{selectedNote ? <div className="editor-canvas note-editor"><div className="document-kicker">LOCAL MARKDOWN DOCUMENT</div><NoteEditor ref={editorRef} note={selectedNote} mode={editorMode} onTitleChange={(title) => updateNote({ title })} onChange={(content, format) => updateNote({ content, format: format ?? 'json' })} /></div> : <div className="editor-canvas empty-editor"><div className="document-kicker">LOCAL MARKDOWN DOCUMENT</div><h1>Your workspace for ideas</h1><p className="lead">A calm place to work with documents that live outside your knowledge vault.</p><div className="placeholder-rule" /><p className="editor-hint">Create a note from the sidebar to get started.</p></div>}</section>
     </main>
-    {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden />}
+    <div className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden />
     {isDragging && <div className="drop-overlay" aria-hidden><div className="drop-overlay-card"><UploadSimpleIcon size={26} weight="regular" aria-hidden /><strong>Suelta tu archivo Markdown</strong><span>Se importará como una nota nueva</span></div></div>}
     <input ref={backupInputRef} type="file" accept=".json,application/json" hidden onChange={handleRestore} />
     {settingsOpen && <SettingsPanel mode={editorMode} notes={notes} onModeChange={changeEditorMode} onBackup={handleBackup} onRestore={() => backupInputRef.current?.click()} onReset={handleReset} onClose={() => setSettingsOpen(false)} />}
