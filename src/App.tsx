@@ -5,7 +5,7 @@ import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { TableKit } from '@tiptap/extension-table'
 import { Markdown } from '@tiptap/markdown'
-import { ArrowUUpLeftIcon, ArrowUUpRightIcon, CaretDownIcon, CheckIcon, CodeBlockIcon, CodeIcon, ColumnsPlusRightIcon, DownloadSimpleIcon, DotsThreeVerticalIcon, GearIcon, LinkIcon, ListIcon, ListBulletsIcon, ListChecksIcon, ListNumbersIcon, MagnifyingGlassIcon, NoteIcon, PlusIcon, QuotesIcon, RowsPlusBottomIcon, TableIcon, TextBIcon, TextItalicIcon, TrashIcon, UploadSimpleIcon, XIcon } from '@phosphor-icons/react'
+import { ArrowUUpLeftIcon, ArrowUUpRightIcon, CaretDownIcon, CheckIcon, CodeBlockIcon, CodeIcon, ColumnsIcon, ColumnsPlusRightIcon, DownloadSimpleIcon, DotsThreeVerticalIcon, GearIcon, LinkIcon, ListIcon, ListBulletsIcon, ListChecksIcon, ListNumbersIcon, MagnifyingGlassIcon, NoteIcon, PlusIcon, QuotesIcon, RowsIcon, RowsPlusBottomIcon, TableIcon, TextBIcon, TextItalicIcon, TrashIcon, UploadSimpleIcon, XIcon } from '@phosphor-icons/react'
 import { clearNotes, createNote, deleteNote, listNotes, replaceNotes, saveNote, type Note } from './db'
 
 type IconName = 'search' | 'plus' | 'chevron' | 'note' | 'settings' | 'close' | 'undo' | 'redo'
@@ -59,7 +59,10 @@ function ToolbarGlyph({ label, active }: { label: string; active?: boolean }) {
   if (label === 'Code block') return <CodeBlockIcon {...props} />
   if (label === 'Table') return <TableIcon {...props} />
   if (label === 'Add row') return <RowsPlusBottomIcon {...props} />
+  if (label === 'Delete row') return <RowsIcon {...props} />
   if (label === 'Add column') return <ColumnsPlusRightIcon {...props} />
+  if (label === 'Delete column') return <ColumnsIcon {...props} />
+  if (label === 'Delete table') return <TrashIcon {...props} />
   if (label === 'Undo') return <ArrowUUpLeftIcon {...props} />
   return <ArrowUUpRightIcon {...props} />
 }
@@ -148,7 +151,7 @@ function EditorToolbar({ editor }: { editor: Editor }) {
     <ToolbarButton label="Quote" active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
     <ToolbarButton label="Code block" active={editor.isActive('codeBlock')} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
     <ToolbarButton label="Table" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
-    {editor.isActive('table') && <><span className="toolbar-divider" /><ToolbarButton label="Add row" onClick={() => editor.chain().focus().addRowAfter().run()} /><ToolbarButton label="Add column" onClick={() => editor.chain().focus().addColumnAfter().run()} /></>}
+    {editor.isActive('table') && <><span className="toolbar-divider" /><ToolbarButton label="Add row" onClick={() => editor.chain().focus().addRowAfter().run()} /><ToolbarButton label="Delete row" onClick={() => editor.chain().focus().deleteRow().run()} /><ToolbarButton label="Add column" onClick={() => editor.chain().focus().addColumnAfter().run()} /><ToolbarButton label="Delete column" onClick={() => editor.chain().focus().deleteColumn().run()} /><ToolbarButton label="Delete table" onClick={() => editor.chain().focus().deleteTable().run()} /></>}
     </div>
     <div className="toolbar-history"><ToolbarButton label="Undo" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} /><ToolbarButton label="Redo" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} /></div>
   </div>
